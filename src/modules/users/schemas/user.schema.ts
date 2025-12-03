@@ -6,7 +6,11 @@ import {
   baseSchemaOptions,
 } from '../../../common/schemas/base.schema';
 
-export type UserDocument = User & Document;
+export interface UserMethods {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+}
+
+export type UserDocument = User & Document & UserMethods;
 
 const userSchemaOptions = {
   ...baseSchemaOptions,
@@ -27,7 +31,7 @@ export class User extends BaseSchema {
   @Prop({ required: true, unique: true, trim: true, lowercase: true })
   email: string;
 
-  @Prop({ required: true, unique: true, trim: true })
+  @Prop({ required: true, trim: true })
   username: string;
 
   @Prop({ required: true, minlength: 6 })
@@ -43,19 +47,14 @@ UserSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 
-UserSchema.index({ email: 1 });
-UserSchema.index({ username: 1 });
-
 UserSchema.pre('save', async function (next) {
-  const user = this as UserDocument;
-
-  if (!user.isModified('password')) {
+  if (!this.isModified('password')) {
     return next();
   }
 
   try {
     const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
     next(error);
@@ -65,6 +64,5 @@ UserSchema.pre('save', async function (next) {
 UserSchema.methods.comparePassword = async function (
   candidatePassword: string,
 ): Promise<boolean> {
-  const user = this as UserDocument;
-  return bcrypt.compare(candidatePassword, user.password);
+  return bcrypt.compare(candidatePassword, this.password);
 };
