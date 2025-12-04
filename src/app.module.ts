@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from './modules/database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { TmdbModule } from './modules/tmdb/tmdb.module';
+import { MoviesModule } from './modules/movies/movies.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
@@ -17,8 +20,11 @@ import { validate } from './config/env.validation';
       load: [appConfig, databaseConfig, jwtConfig, tmdbConfig, redisConfig],
       validate,
     }),
+    ScheduleModule.forRoot(),
     DatabaseModule,
     AuthModule,
+    TmdbModule,
+    MoviesModule,
   ],
   controllers: [],
   providers: [],

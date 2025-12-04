@@ -33,7 +33,8 @@ export class LoggingInterceptor implements NestInterceptor {
 
     // Log request body for POST/PUT/PATCH (be careful with sensitive data)
     if (['POST', 'PUT', 'PATCH'].includes(method)) {
-      this.logger.debug(`Request Body: ${JSON.stringify(body)}`);
+      const sanitizedBody = this.sanitizeBody(body);
+      this.logger.debug(`Request Body: ${JSON.stringify(sanitizedBody)}`);
     }
 
     // Log query params and route params if present
@@ -64,5 +65,37 @@ export class LoggingInterceptor implements NestInterceptor {
         },
       }),
     );
+  }
+
+  /**
+   * Sanitize request body to exclude sensitive fields
+   */
+  private sanitizeBody(body: any): any {
+    if (!body || typeof body !== 'object') {
+      return body;
+    }
+
+    const sensitiveFields = [
+      'password',
+      'newPassword',
+      'oldPassword',
+      'currentPassword',
+      'confirmPassword',
+      'token',
+      'accessToken',
+      'refreshToken',
+      'secret',
+      'apiKey',
+    ];
+
+    const sanitized = { ...body };
+
+    for (const field of sensitiveFields) {
+      if (field in sanitized) {
+        sanitized[field] = '***REDACTED***';
+      }
+    }
+
+    return sanitized;
   }
 }
