@@ -10,10 +10,10 @@ export type MovieDocument = Movie & Document;
 
 @Schema(baseSchemaOptions)
 export class Movie extends BaseSchema {
-  @Prop({ required: true, unique: true, index: true })
+  @Prop({ required: true, unique: true })
   tmdb_id: number;
 
-  @Prop({ required: true, index: true })
+  @Prop({ required: true })
   title: string;
 
   @Prop({ type: String })
@@ -25,13 +25,13 @@ export class Movie extends BaseSchema {
   @Prop()
   backdrop_path: string;
 
-  @Prop({ type: Date, index: true })
+  @Prop({ type: Date })
   release_date: Date;
 
   @Prop({ type: Number })
   runtime: number;
 
-  @Prop({ type: Number, index: true, default: 0 })
+  @Prop({ type: Number, default: 0 })
   popularity: number;
 
   @Prop({ type: Number, min: 0, max: 10 })
@@ -42,7 +42,6 @@ export class Movie extends BaseSchema {
 
   @Prop({
     type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Genre' }],
-    index: true,
   })
   genres: Genre[];
 
@@ -65,12 +64,7 @@ MovieSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 
-MovieSchema.index({ tmdb_id: 1 });
 MovieSchema.index({ title: 'text', overview: 'text' });
-MovieSchema.index({ release_date: -1 });
-MovieSchema.index({ popularity: -1 });
 MovieSchema.index({ average_rating: -1 });
-MovieSchema.index({ genres: 1 });
-
 MovieSchema.index({ genres: 1, popularity: -1 });
 MovieSchema.index({ release_date: -1, popularity: -1 });

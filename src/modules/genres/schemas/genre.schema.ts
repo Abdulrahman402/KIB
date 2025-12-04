@@ -23,6 +23,4 @@ GenreSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 
-// Indexes
-GenreSchema.index({ tmdb_id: 1 });
-GenreSchema.index({ name: 1 });
+// Indexes are created automatically by unique: true on tmdb_id and name
