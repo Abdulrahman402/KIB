@@ -24,12 +24,56 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+TMDB Movie API - A comprehensive RESTful API for movie database management with ratings and watchlist functionality. Built with NestJS and powered by The Movie Database (TMDB) API.
 
-## Project setup
+## Features
+
+- 🎬 **Movie Management** - Browse, search, and filter movies from TMDB
+- ⭐ **Rating System** - Rate movies from 1-10 with optional reviews
+- 📋 **Watchlist** - Add movies to watchlist and mark favorites
+- 🎭 **Genre Filtering** - Filter movies by genre (Action, Thriller, Horror, etc.)
+- 🔒 **JWT Authentication** - Secure API endpoints with JWT tokens
+- 📚 **API Documentation** - Interactive Swagger/OpenAPI documentation
+- 🔄 **Auto-Sync** - Automated synchronization with TMDB data
+- ✅ **Comprehensive Testing** - Unit tests with 85%+ coverage
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- MongoDB
+- TMDB API Key ([Get one here](https://www.themoviedb.org/settings/api))
+
+### Project setup
 
 ```bash
 $ npm install
+```
+
+### Environment Configuration
+
+Create a `.env` file in the root directory:
+
+```env
+# App Configuration
+NODE_ENV=development
+PORT=8080
+API_PREFIX=api/v1
+
+# Database
+MONGODB_URI=mongodb://localhost:27017/tmdb-movie-api
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRES_IN=7d
+
+# TMDB API
+TMDB_API_KEY=your-tmdb-api-key
+TMDB_BASE_URL=https://api.themoviedb.org/3
+
+# CORS
+CORS_ORIGIN=http://localhost:3000
 ```
 
 ## Compile and run the project
@@ -45,6 +89,66 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+Once running, the application will be available at:
+- **API Base URL**: `http://localhost:8080/api/v1`
+- **Swagger Documentation**: `http://localhost:8080/api/docs`
+
+## API Documentation
+
+The API includes interactive Swagger documentation. Once the application is running, visit:
+
+**http://localhost:8080/api/docs**
+
+Here you can:
+- Explore all available endpoints
+- Test API calls directly from the browser
+- View request/response schemas
+- Authenticate with JWT tokens
+
+### Authentication Flow
+
+1. **Register**: `POST /api/v1/auth/register`
+   ```json
+   {
+     "email": "user@example.com",
+     "username": "johndoe",
+     "password": "password123"
+   }
+   ```
+
+2. **Login**: `POST /api/v1/auth/login`
+   ```json
+   {
+     "email": "user@example.com",
+     "password": "password123"
+   }
+   ```
+
+3. Copy the `access_token` from the response
+
+4. Click "Authorize" in Swagger UI and enter: `Bearer <your-token>`
+
+### Key Endpoints
+
+**Movies**
+- `GET /api/v1/movies` - List movies (with filters)
+- `GET /api/v1/movies/search?query=inception` - Search movies
+- `GET /api/v1/movies/:id` - Get movie details
+
+**Ratings**
+- `POST /api/v1/ratings` - Rate a movie (1-10)
+- `GET /api/v1/ratings` - Get your ratings
+- `PATCH /api/v1/ratings/:id` - Update a rating
+
+**Watchlist**
+- `POST /api/v1/watchlist` - Add to watchlist
+- `GET /api/v1/watchlist` - Get your watchlist
+- `PATCH /api/v1/watchlist/:id/favorite` - Mark as favorite
+
+**Genres**
+- `GET /api/v1/genres` - List all genres
+- `GET /api/v1/genres/:id/movies` - Movies by genre
+
 ## Run tests
 
 ```bash
@@ -57,6 +161,34 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+## Project Documentation
+
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design patterns
+- **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Detailed project structure guide
+- **[SWAGGER_SETUP.md](./SWAGGER_SETUP.md)** - Swagger/OpenAPI documentation guide
+- **[JWT_USAGE_EXAMPLES.md](./JWT_USAGE_EXAMPLES.md)** - Authentication examples
+
+## Technology Stack
+
+- **Framework**: NestJS
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT (JSON Web Tokens)
+- **Validation**: class-validator & class-transformer
+- **API Documentation**: Swagger/OpenAPI
+- **Testing**: Jest
+- **External API**: TMDB (The Movie Database)
+- **Task Scheduling**: @nestjs/schedule (for data sync)
+
+## Architecture Highlights
+
+- **Modular Design** - Separated modules for auth, movies, ratings, watchlist, genres
+- **Repository Pattern** - Clean data access layer
+- **DTOs** - Request/response validation and transformation
+- **Guards** - JWT authentication guards
+- **Interceptors** - Logging and response transformation
+- **Exception Filters** - Centralized error handling
+- **Automated Sync** - Cron jobs for TMDB data synchronization
 
 ## Deployment
 
