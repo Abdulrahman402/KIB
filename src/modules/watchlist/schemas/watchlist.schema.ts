@@ -15,7 +15,6 @@ export class Watchlist extends BaseSchema {
     type: MongooseSchema.Types.ObjectId,
     ref: 'User',
     required: true,
-    index: true,
   })
   user_id: User;
 
@@ -23,11 +22,10 @@ export class Watchlist extends BaseSchema {
     type: MongooseSchema.Types.ObjectId,
     ref: 'Movie',
     required: true,
-    index: true,
   })
   movie_id: Movie;
 
-  @Prop({ type: Boolean, default: false, index: true })
+  @Prop({ type: Boolean, default: false })
   is_favorite: boolean;
 
   @Prop({ type: Date, default: Date.now })
@@ -40,8 +38,6 @@ WatchlistSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 
-WatchlistSchema.index({ user_id: 1 });
-WatchlistSchema.index({ movie_id: 1 });
 WatchlistSchema.index({ user_id: 1, movie_id: 1 }, { unique: true });
 WatchlistSchema.index({ user_id: 1, is_favorite: 1 });
 WatchlistSchema.index({ added_at: -1 });
