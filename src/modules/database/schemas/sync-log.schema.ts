@@ -24,7 +24,6 @@ export class SyncLog extends BaseSchema {
     type: String,
     enum: SyncEntityType,
     required: true,
-    index: true,
   })
   entity_type: SyncEntityType;
 
