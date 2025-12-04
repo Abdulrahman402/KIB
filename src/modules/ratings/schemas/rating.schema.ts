@@ -15,7 +15,6 @@ export class Rating extends BaseSchema {
     type: MongooseSchema.Types.ObjectId,
     ref: 'User',
     required: true,
-    index: true,
   })
   user_id: User;
 
@@ -23,7 +22,6 @@ export class Rating extends BaseSchema {
     type: MongooseSchema.Types.ObjectId,
     ref: 'Movie',
     required: true,
-    index: true,
   })
   movie_id: Movie;
 
@@ -40,8 +38,6 @@ RatingSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 
-RatingSchema.index({ user_id: 1 });
-RatingSchema.index({ movie_id: 1 });
 RatingSchema.index({ user_id: 1, movie_id: 1 }, { unique: true });
 RatingSchema.index({ rating: -1 });
 RatingSchema.index({ created_at: -1 });
