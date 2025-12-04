@@ -25,21 +25,6 @@ export class GenresService {
   }
 
   /**
-   * Get genre by ID
-   */
-  async findOne(id: string): Promise<GenreResponseDto> {
-    this.logger.log(`Fetching genre with ID: ${id}`);
-
-    const genre = await this.genresRepository.findById(id);
-
-    if (!genre) {
-      throw new NotFoundException(`Genre with ID ${id} not found`);
-    }
-
-    return this.toGenreResponse(genre);
-  }
-
-  /**
    * Get movies by genre ID with pagination
    */
   async getMoviesByGenre(
