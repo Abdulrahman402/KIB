@@ -73,25 +73,6 @@ describe('GenresController', () => {
     });
   });
 
-  describe('findOne', () => {
-    it('should return a genre by ID', async () => {
-      mockGenresService.findOne.mockResolvedValue(mockGenreResponse);
-
-      const result = await controller.findOne('507f1f77bcf86cd799439011');
-
-      expect(service.findOne).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
-      expect(result).toEqual(mockGenreResponse);
-    });
-
-    it('should handle different genre IDs', async () => {
-      mockGenresService.findOne.mockResolvedValue(mockGenreResponse);
-
-      await controller.findOne('507f191e810c19729de860ea');
-
-      expect(service.findOne).toHaveBeenCalledWith('507f191e810c19729de860ea');
-    });
-  });
-
   describe('getMoviesByGenre', () => {
     it('should return paginated movies for a genre', async () => {
       mockGenresService.getMoviesByGenre.mockResolvedValue(

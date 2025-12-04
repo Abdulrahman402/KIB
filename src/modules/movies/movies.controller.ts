@@ -4,7 +4,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
 import { MoviesService } from './movies.service';
@@ -71,66 +70,6 @@ export class MoviesController {
     @Query() searchDto: SearchMovieDto,
   ): Promise<PaginatedMoviesResponseDto> {
     return this.moviesService.search(searchDto);
-  }
-
-  /**
-   * Get movies by genre (requires authentication)
-   * GET /api/v1/movies/genre/:genreId?page=1&limit=20
-   */
-  @Get('genre/:genreId')
-  @ApiOperation({
-    summary: 'Get movies by genre',
-    description: 'Retrieve movies filtered by a specific genre ID.',
-  })
-  @ApiParam({ name: 'genreId', description: 'MongoDB ObjectId of the genre' })
-  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, type: Number, example: 20 })
-  @ApiResponse({
-    status: 200,
-    description: 'Movies retrieved successfully',
-    type: PaginatedMoviesResponseDto,
-  })
-  @ApiResponse({ status: 404, description: 'Genre not found' })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - Invalid or missing JWT token',
-  })
-  async findByGenre(
-    @Param('genreId') genreId: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 20,
-  ): Promise<PaginatedMoviesResponseDto> {
-    return this.moviesService.findByGenre(genreId, page, limit);
-  }
-
-  /**
-   * Get movie by TMDB ID (requires authentication)
-   * GET /api/v1/movies/tmdb/:tmdbId
-   */
-  @Get('tmdb/:tmdbId')
-  @ApiOperation({
-    summary: 'Get movie by TMDB ID',
-    description: 'Retrieve a movie by its TMDB (The Movie Database) ID.',
-  })
-  @ApiParam({
-    name: 'tmdbId',
-    description: 'TMDB ID of the movie',
-    type: Number,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Movie retrieved successfully',
-    type: MovieResponseDto,
-  })
-  @ApiResponse({ status: 404, description: 'Movie not found' })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - Invalid or missing JWT token',
-  })
-  async findByTmdbId(
-    @Param('tmdbId') tmdbId: number,
-  ): Promise<MovieResponseDto> {
-    return this.moviesService.findByTmdbId(tmdbId);
   }
 
   /**
