@@ -114,16 +114,6 @@ export class MoviesRepository {
   }
 
   /**
-   * Find movie by TMDB ID
-   */
-  async findByTmdbId(tmdbId: number): Promise<MovieDocument | null> {
-    return this.movieModel
-      .findOne({ tmdb_id: tmdbId })
-      .populate('genres', 'name tmdb_id')
-      .exec();
-  }
-
-  /**
    * Search movies by title or overview
    */
   async search(

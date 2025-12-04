@@ -200,29 +200,6 @@ describe('MoviesService', () => {
     });
   });
 
-  describe('findByTmdbId', () => {
-    it('should return a movie by TMDB ID', async () => {
-      mockRepository.findByTmdbId.mockResolvedValue(mockMovie);
-
-      const result = await service.findByTmdbId(550);
-
-      expect(repository.findByTmdbId).toHaveBeenCalledWith(550);
-      expect(result.tmdb_id).toBe(550);
-      expect(result.title).toBe('Fight Club');
-    });
-
-    it('should throw NotFoundException if movie not found by TMDB ID', async () => {
-      mockRepository.findByTmdbId.mockResolvedValue(null);
-
-      await expect(service.findByTmdbId(999999)).rejects.toThrow(
-        NotFoundException,
-      );
-      await expect(service.findByTmdbId(999999)).rejects.toThrow(
-        'Movie with TMDB ID 999999 not found',
-      );
-    });
-  });
-
   describe('search', () => {
     it('should search movies by query', async () => {
       const searchDto: SearchMovieDto = {
@@ -279,43 +256,6 @@ describe('MoviesService', () => {
       expect(result.meta.totalPages).toBe(2);
       expect(result.meta.hasNextPage).toBe(false);
       expect(result.meta.hasPrevPage).toBe(true);
-    });
-  });
-
-  describe('findByGenre', () => {
-    it('should return movies filtered by genre', async () => {
-      mockRepository.findByGenre.mockResolvedValue({
-        movies: [mockMovie],
-        total: 1,
-      });
-
-      const result = await service.findByGenre('g1', 1, 20);
-
-      expect(repository.findByGenre).toHaveBeenCalledWith('g1', 1, 20);
-      expect(result.data).toHaveLength(1);
-    });
-
-    it('should use default pagination parameters', async () => {
-      mockRepository.findByGenre.mockResolvedValue({
-        movies: [mockMovie],
-        total: 1,
-      });
-
-      await service.findByGenre('g1');
-
-      expect(repository.findByGenre).toHaveBeenCalledWith('g1', 1, 20);
-    });
-
-    it('should handle empty results for genre', async () => {
-      mockRepository.findByGenre.mockResolvedValue({
-        movies: [],
-        total: 0,
-      });
-
-      const result = await service.findByGenre('g999');
-
-      expect(result.data).toHaveLength(0);
-      expect(result.meta.total).toBe(0);
     });
   });
 });

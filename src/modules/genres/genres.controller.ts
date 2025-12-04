@@ -42,30 +42,6 @@ export class GenresController {
   }
 
   /**
-   * Get genre by ID (requires authentication)
-   * GET /api/v1/genres/:id
-   */
-  @Get(':id')
-  @ApiOperation({
-    summary: 'Get genre by ID',
-    description: 'Retrieve a specific genre by its MongoDB ObjectId.',
-  })
-  @ApiParam({ name: 'id', description: 'MongoDB ObjectId of the genre' })
-  @ApiResponse({
-    status: 200,
-    description: 'Genre retrieved successfully',
-    type: GenreResponseDto,
-  })
-  @ApiResponse({ status: 404, description: 'Genre not found' })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - Invalid or missing JWT token',
-  })
-  async findOne(@Param('id') id: string): Promise<GenreResponseDto> {
-    return this.genresService.findOne(id);
-  }
-
-  /**
    * Get movies by genre (requires authentication)
    * GET /api/v1/genres/:id/movies?page=1&limit=20
    */
