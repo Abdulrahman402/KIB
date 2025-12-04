@@ -7,6 +7,7 @@ import { TmdbModule } from './modules/tmdb/tmdb.module';
 import { MoviesModule } from './modules/movies/movies.module';
 import { GenresModule } from './modules/genres/genres.module';
 import { RatingsModule } from './modules/ratings/ratings.module';
+import { WatchlistModule } from './modules/watchlist/watchlist.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
@@ -29,6 +30,7 @@ import { validate } from './config/env.validation';
     MoviesModule,
     GenresModule,
     RatingsModule,
+    WatchlistModule,
   ],
   controllers: [],
   providers: [],
