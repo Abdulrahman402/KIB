@@ -5,6 +5,7 @@ import { DatabaseModule } from './modules/database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TmdbModule } from './modules/tmdb/tmdb.module';
 import { MoviesModule } from './modules/movies/movies.module';
+import { GenresModule } from './modules/genres/genres.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
@@ -25,6 +26,7 @@ import { validate } from './config/env.validation';
     AuthModule,
     TmdbModule,
     MoviesModule,
+    GenresModule,
   ],
   controllers: [],
   providers: [],
