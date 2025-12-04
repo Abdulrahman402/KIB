@@ -97,31 +97,6 @@ describe('GenresService', () => {
     });
   });
 
-  describe('findOne', () => {
-    it('should return a genre by ID', async () => {
-      mockGenresRepository.findById.mockResolvedValue(mockGenre);
-
-      const result = await service.findOne('507f1f77bcf86cd799439011');
-
-      expect(genresRepository.findById).toHaveBeenCalledWith(
-        '507f1f77bcf86cd799439011',
-      );
-      expect(result.id).toBe('507f1f77bcf86cd799439011');
-      expect(result.name).toBe('Drama');
-    });
-
-    it('should throw NotFoundException if genre not found', async () => {
-      mockGenresRepository.findById.mockResolvedValue(null);
-
-      await expect(service.findOne('nonexistent')).rejects.toThrow(
-        NotFoundException,
-      );
-      await expect(service.findOne('nonexistent')).rejects.toThrow(
-        'Genre with ID nonexistent not found',
-      );
-    });
-  });
-
   describe('getMoviesByGenre', () => {
     it('should return paginated movies for a genre', async () => {
       mockGenresRepository.findById.mockResolvedValue(mockGenre);

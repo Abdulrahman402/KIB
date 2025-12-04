@@ -62,21 +62,6 @@ export class MoviesService {
   }
 
   /**
-   * Get movie by TMDB ID
-   */
-  async findByTmdbId(tmdbId: number): Promise<MovieResponseDto> {
-    this.logger.log(`Fetching movie with TMDB ID: ${tmdbId}`);
-
-    const movie = await this.moviesRepository.findByTmdbId(tmdbId);
-
-    if (!movie) {
-      throw new NotFoundException(`Movie with TMDB ID ${tmdbId} not found`);
-    }
-
-    return this.toMovieResponse(movie);
-  }
-
-  /**
    * Search movies
    */
   async search(searchDto: SearchMovieDto): Promise<PaginatedMoviesResponseDto> {
@@ -86,37 +71,6 @@ export class MoviesService {
 
     const { movies, total } = await this.moviesRepository.search(
       query,
-      page,
-      limit,
-    );
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data: movies.map((movie) => this.toMovieResponse(movie)),
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
-    };
-  }
-
-  /**
-   * Get movies by genre
-   */
-  async findByGenre(
-    genreId: string,
-    page: number = 1,
-    limit: number = 20,
-  ): Promise<PaginatedMoviesResponseDto> {
-    this.logger.log(`Fetching movies for genre ID: ${genreId}`);
-
-    const { movies, total } = await this.moviesRepository.findByGenre(
-      genreId,
       page,
       limit,
     );

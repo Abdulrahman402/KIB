@@ -144,67 +144,6 @@ describe('MoviesController', () => {
     });
   });
 
-  describe('findByGenre', () => {
-    it('should return movies by genre', async () => {
-      const genreId = 'g1';
-      const page = 1;
-      const limit = 20;
-
-      mockMoviesService.findByGenre.mockResolvedValue(mockPaginatedResponse);
-
-      const result = await controller.findByGenre(genreId, page, limit);
-
-      expect(service.findByGenre).toHaveBeenCalledWith(genreId, page, limit);
-      expect(result).toEqual(mockPaginatedResponse);
-    });
-
-    it('should use default pagination parameters', async () => {
-      const genreId = 'g1';
-
-      mockMoviesService.findByGenre.mockResolvedValue(mockPaginatedResponse);
-
-      await controller.findByGenre(genreId);
-
-      expect(service.findByGenre).toHaveBeenCalledWith(genreId, 1, 20);
-    });
-
-    it('should handle custom pagination', async () => {
-      const genreId = 'g2';
-      const page = 3;
-      const limit = 50;
-
-      mockMoviesService.findByGenre.mockResolvedValue(mockPaginatedResponse);
-
-      await controller.findByGenre(genreId, page, limit);
-
-      expect(service.findByGenre).toHaveBeenCalledWith(genreId, page, limit);
-    });
-  });
-
-  describe('findByTmdbId', () => {
-    it('should return a movie by TMDB ID', async () => {
-      const tmdbId = 550;
-
-      mockMoviesService.findByTmdbId.mockResolvedValue(mockMovieResponse);
-
-      const result = await controller.findByTmdbId(tmdbId);
-
-      expect(service.findByTmdbId).toHaveBeenCalledWith(tmdbId);
-      expect(result).toEqual(mockMovieResponse);
-      expect(result.tmdb_id).toBe(550);
-    });
-
-    it('should handle different TMDB IDs', async () => {
-      const tmdbId = 27205;
-
-      mockMoviesService.findByTmdbId.mockResolvedValue(mockMovieResponse);
-
-      await controller.findByTmdbId(tmdbId);
-
-      expect(service.findByTmdbId).toHaveBeenCalledWith(tmdbId);
-    });
-  });
-
   describe('findOne', () => {
     it('should return a movie by ID', async () => {
       const id = '507f1f77bcf86cd799439011';
