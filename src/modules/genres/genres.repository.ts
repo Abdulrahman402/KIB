@@ -44,6 +44,27 @@ export class GenresRepository {
    * Find all genres
    */
   async findAll(): Promise<GenreDocument[]> {
-    return this.genreModel.find().exec();
+    return this.genreModel.find().sort({ name: 1 }).exec();
+  }
+
+  /**
+   * Find genre by ID
+   */
+  async findById(id: string): Promise<GenreDocument | null> {
+    return this.genreModel.findById(id).exec();
+  }
+
+  /**
+   * Find genre by TMDB ID
+   */
+  async findByTmdbId(tmdbId: number): Promise<GenreDocument | null> {
+    return this.genreModel.findOne({ tmdb_id: tmdbId }).exec();
+  }
+
+  /**
+   * Count total genres
+   */
+  async count(): Promise<number> {
+    return this.genreModel.countDocuments().exec();
   }
 }
