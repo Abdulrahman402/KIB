@@ -68,6 +68,7 @@ async function bootstrap() {
     .addTag('genres', 'Genre management endpoints')
     .addTag('ratings', 'Movie rating endpoints')
     .addTag('watchlist', 'Watchlist and favorites endpoints')
+    .addTag('health', 'Health check endpoints')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
