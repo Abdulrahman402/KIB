@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -7,15 +14,18 @@ import {
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
+import { CacheTTL } from '@nestjs/cache-manager';
 import { GenresService } from './genres.service';
 import { GenreResponseDto } from './dto';
 import { PaginatedMoviesResponseDto } from '../movies/dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CacheInterceptor } from '../../common/interceptors/cache.interceptor';
 
 @ApiTags('genres')
 @ApiBearerAuth('JWT-auth')
 @Controller('genres')
 @UseGuards(JwtAuthGuard)
+@UseInterceptors(CacheInterceptor)
 export class GenresController {
   constructor(private readonly genresService: GenresService) {}
 
@@ -24,6 +34,7 @@ export class GenresController {
    * GET /api/v1/genres
    */
   @Get()
+  @CacheTTL(120000)
   @ApiOperation({
     summary: 'Get all genres',
     description: 'Retrieve a list of all available movie genres.',
