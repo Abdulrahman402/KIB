@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Reflector } from '@nestjs/core';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { GenresController } from './genres.controller';
 import { GenresService } from './genres.service';
 import { GenreResponseDto } from './dto';
@@ -34,6 +36,11 @@ describe('GenresController', () => {
     getMoviesByGenre: jest.fn(),
   };
 
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GenresController],
@@ -42,6 +49,11 @@ describe('GenresController', () => {
           provide: GenresService,
           useValue: mockGenresService,
         },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
+        },
+        Reflector,
       ],
     }).compile();
 

@@ -20,7 +20,6 @@ export class GenresService {
     this.logger.log('Fetching all genres');
 
     const genres = await this.genresRepository.findAll();
-
     return genres.map((genre) => this.toGenreResponse(genre));
   }
 
