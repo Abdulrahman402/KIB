@@ -1,0 +1,97 @@
+services:
+  # MongoDB Service
+  mongodb:
+    image: mongo:7.0
+    container_name: kib-mongodb
+    restart: unless-stopped
+    ports:
+      - '27018:27017'
+    environment:
+      MONGO_INITDB_DATABASE: kib
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - kib-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/kib --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Service
+  redis:
+    image: redis:7-alpine
+    container_name: kib-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis_secure_password_123}
+    volumes:
+      - redis_data:/data
+    networks:
+      - kib-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_secure_password_123}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secure_password_123}
+
+  # NestJS Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: kib-app
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT}
+      API_PREFIX: api/v1
+      MONGODB_URI: mongodb://mongodb:27017/kib
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_TTL: 120000
+      TMDB_API_KEY: ${TMDB_API_KEY}
+      TMDB_BASE_URL: https://api.themoviedb.org/3
+      TMDB_IMAGE_BASE_URL: https://image.tmdb.org/t/p
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: 7d
+      DEFAULT_PAGE_SIZE: 20
+      MAX_PAGE_SIZE: 100
+      TMDB_SYNC_PAGES: 50
+      TMDB_SYNC_CRON: '0 2 * * *'
+      CORS_ORIGIN: '*'
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - kib-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8080/api/v1/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+networks:
+  kib-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  redis_data:
+    driver: local
