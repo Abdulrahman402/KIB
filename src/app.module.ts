@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
+import type { RedisClientOptions } from 'redis';
+import { redisStore } from 'cache-manager-redis-yet';
 import { DatabaseModule } from './modules/database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TmdbModule } from './modules/tmdb/tmdb.module';
@@ -24,6 +27,22 @@ import { validate } from './config/env.validation';
       validate,
     }),
     ScheduleModule.forRoot(),
+    CacheModule.registerAsync<RedisClientOptions>({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const store = await redisStore({
+          socket: {
+            host: configService.get('redis.host'),
+            port: configService.get('redis.port'),
+          },
+          password: configService.get('redis.password'),
+          ttl: configService.get('redis.ttl') * 1000,
+        });
+        return { store };
+      },
+      inject: [ConfigService],
+    }),
     DatabaseModule,
     AuthModule,
     TmdbModule,
