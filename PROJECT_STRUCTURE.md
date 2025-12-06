@@ -1,5 +1,70 @@
 # Project Structure Documentation
 
+## Visual Architecture Map
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          KIB Project Root                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  📂 src/                       Main application source code              │
+│  ├── 📂 modules/              Feature-based modules (business domains)  │
+│  │   ├── 🎬 movies/           Movie browsing, search, filtering         │
+│  │   ├── 🎭 genres/           Genre management & caching                │
+│  │   ├── ⭐ ratings/          Movie rating system (1-10 scale)          │
+│  │   ├── 📋 watchlist/        Watchlist & favorites management          │
+│  │   ├── 🔐 auth/            JWT authentication (login/register)        │
+│  │   ├── 👤 users/           User schema & interfaces                   │
+│  │   ├── 🎥 tmdb/            TMDB API integration & auto-sync           │
+│  │   ├── 💚 health/          Health checks (DB, Redis)                  │
+│  │   └── 🗄️  database/        Database configuration & connection       │
+│  │                                                                       │
+│  ├── 📂 common/              Shared utilities & cross-cutting concerns  │
+│  │   ├── 🛡️  guards/          JWT auth guard, rate limiter             │
+│  │   ├── 🔄 interceptors/    Cache, logging, transform                 │
+│  │   ├── ⚠️  filters/         Exception handling (HTTP, Mongo)          │
+│  │   ├── ✅ pipes/            Validation pipe                           │
+│  │   ├── 🎯 decorators/      Custom decorators (@Public, @CurrentUser) │
+│  │   ├── 🔑 strategies/      Passport JWT strategy                     │
+│  │   ├── 📐 schemas/         Base schema with timestamps               │
+│  │   ├── 🚨 exceptions/      Custom exceptions (Business, NotFound)    │
+│  │   ├── 📡 interfaces/      Shared interfaces (API response, JWT)     │
+│  │   ├── 📝 constants/       App-wide constants & messages             │
+│  │   └── 🛠️  utils/           Utility functions (cron helpers)          │
+│  │                                                                       │
+│  ├── 📂 config/              Configuration files & validation           │
+│  │   ├── app.config.ts       App settings (port, prefix, CORS)         │
+│  │   ├── database.config.ts  MongoDB connection settings               │
+│  │   ├── redis.config.ts     Redis cache configuration                 │
+│  │   ├── jwt.config.ts       JWT secret & expiration                   │
+│  │   ├── tmdb.config.ts      TMDB API credentials & endpoints          │
+│  │   └── env.validation.ts   Environment variable validation           │
+│  │                                                                       │
+│  ├── 📄 app.module.ts        Root module (imports all feature modules) │
+│  └── 📄 main.ts              Application bootstrap & setup              │
+│                                                                          │
+│  📂 test/                     End-to-end tests                          │
+│  ├── app.e2e-spec.ts         E2E test suite                            │
+│  └── jest-e2e.json           Jest E2E configuration                    │
+│                                                                          │
+│  📂 Root Configuration Files                                            │
+│  ├── 🐳 docker-compose.yml    Multi-container setup (app, mongo, redis)│
+│  ├── 🐳 Dockerfile            Production-ready container image          │
+│  ├── 📦 package.json          Dependencies & scripts                   │
+│  ├── 🔧 tsconfig.json         TypeScript configuration                 │
+│  ├── 🔧 tsconfig.build.json   TypeScript build settings                │
+│  ├── 🔧 nest-cli.json         NestJS CLI configuration                 │
+│  ├── 🔒 .env                  Environment variables (gitignored)        │
+│  ├── 📋 .env.example          Environment template                     │
+│  └── 📚 Documentation                                                   │
+│      ├── README.md            Project overview & quick start           │
+│      ├── ARCHITECTURE.md      System architecture & design             │
+│      ├── PROJECT_STRUCTURE.md This file - detailed structure           │
+│      ├── SWAGGER_SETUP.md     API documentation guide                  │
+│      └── JWT_USAGE_EXAMPLES.md Authentication examples                 │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
 ## Directory Overview
 
 ```
@@ -8,15 +73,14 @@ KIB/
 │   ├── modules/                  # Feature modules (domain logic)
 │   │   ├── movies/              # Movie management module
 │   │   │   ├── dto/             # Data Transfer Objects for movies
-│   │   │   │   ├── create-movie.dto.ts
-│   │   │   │   ├── update-movie.dto.ts
-│   │   │   │   ├── movie-filter.dto.ts
 │   │   │   │   ├── movie-query.dto.ts
-│   │   │   │   └── movie-response.dto.ts
+│   │   │   │   ├── movie-response.dto.ts
+│   │   │   │   ├── paginated-movies-response.dto.ts
+│   │   │   │   ├── search-movie.dto.ts
+│   │   │   │   └── index.ts
 │   │   │   ├── schemas/         # Mongoose schemas
 │   │   │   │   └── movie.schema.ts
 │   │   │   ├── interfaces/      # TypeScript interfaces
-│   │   │   │   └── movie.interface.ts
 │   │   │   ├── movies.controller.ts      # HTTP route handlers
 │   │   │   ├── movies.controller.spec.ts # Controller tests
 │   │   │   ├── movies.service.ts         # Business logic
@@ -26,136 +90,116 @@ KIB/
 │   │   │
 │   │   ├── genres/              # Genre management module
 │   │   │   ├── dto/
-│   │   │   │   └── genre-response.dto.ts
+│   │   │   │   ├── genre-response.dto.ts
+│   │   │   │   └── index.ts
 │   │   │   ├── schemas/
-│   │   │   │   └── genre.schema.ts
 │   │   │   ├── interfaces/
-│   │   │   │   └── genre.interface.ts
 │   │   │   ├── genres.controller.ts
 │   │   │   ├── genres.controller.spec.ts
 │   │   │   ├── genres.service.ts
 │   │   │   ├── genres.service.spec.ts
+│   │   │   ├── genres.repository.ts
 │   │   │   └── genres.module.ts
 │   │   │
 │   │   ├── ratings/             # Movie rating module
 │   │   │   ├── dto/
 │   │   │   │   ├── create-rating.dto.ts
 │   │   │   │   ├── update-rating.dto.ts
-│   │   │   │   └── rating-response.dto.ts
+│   │   │   │   ├── rating-response.dto.ts
+│   │   │   │   ├── paginated-ratings-response.dto.ts
+│   │   │   │   └── index.ts
 │   │   │   ├── schemas/
-│   │   │   │   └── rating.schema.ts
 │   │   │   ├── interfaces/
-│   │   │   │   └── rating.interface.ts
 │   │   │   ├── ratings.controller.ts
 │   │   │   ├── ratings.controller.spec.ts
 │   │   │   ├── ratings.service.ts
 │   │   │   ├── ratings.service.spec.ts
+│   │   │   ├── ratings.repository.ts
 │   │   │   └── ratings.module.ts
 │   │   │
 │   │   ├── watchlist/           # Watchlist & favorites module
 │   │   │   ├── dto/
 │   │   │   │   ├── add-to-watchlist.dto.ts
-│   │   │   │   ├── watchlist-query.dto.ts
-│   │   │   │   └── watchlist-response.dto.ts
+│   │   │   │   ├── update-watchlist.dto.ts
+│   │   │   │   ├── watchlist-response.dto.ts
+│   │   │   │   ├── paginated-watchlist-response.dto.ts
+│   │   │   │   └── index.ts
 │   │   │   ├── schemas/
-│   │   │   │   └── watchlist.schema.ts
 │   │   │   ├── interfaces/
-│   │   │   │   └── watchlist.interface.ts
 │   │   │   ├── watchlist.controller.ts
 │   │   │   ├── watchlist.controller.spec.ts
 │   │   │   ├── watchlist.service.ts
 │   │   │   ├── watchlist.service.spec.ts
+│   │   │   ├── watchlist.repository.ts
 │   │   │   └── watchlist.module.ts
 │   │   │
-│   │   ├── users/               # User management module
-│   │   │   ├── dto/
-│   │   │   │   ├── create-user.dto.ts
-│   │   │   │   ├── update-user.dto.ts
-│   │   │   │   └── user-response.dto.ts
+│   │   ├── users/               # User management module (lightweight)
 │   │   │   ├── schemas/
 │   │   │   │   └── user.schema.ts
-│   │   │   ├── interfaces/
-│   │   │   │   └── user.interface.ts
-│   │   │   ├── users.controller.ts
-│   │   │   ├── users.controller.spec.ts
-│   │   │   ├── users.service.ts
-│   │   │   ├── users.service.spec.ts
-│   │   │   └── users.module.ts
+│   │   │   └── interfaces/
 │   │   │
 │   │   ├── auth/                # Authentication module
 │   │   │   ├── dto/
 │   │   │   │   ├── register.dto.ts
-│   │   │   │   ├── login.dto.ts
-│   │   │   │   └── auth-response.dto.ts
-│   │   │   ├── guards/
-│   │   │   │   ├── jwt-auth.guard.ts
-│   │   │   │   └── roles.guard.ts
-│   │   │   ├── strategies/
-│   │   │   │   └── jwt.strategy.ts
-│   │   │   ├── interfaces/
-│   │   │   │   └── jwt-payload.interface.ts
+│   │   │   │   └── login.dto.ts
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.controller.spec.ts
 │   │   │   ├── auth.service.ts
 │   │   │   ├── auth.service.spec.ts
+│   │   │   ├── auth.repository.ts
+│   │   │   ├── auth.repository.spec.ts
+│   │   │   ├── auth.repository.spec.ts
 │   │   │   └── auth.module.ts
 │   │   │
 │   │   ├── tmdb/                # TMDB API integration module
 │   │   │   ├── interfaces/
-│   │   │   │   ├── tmdb-movie.interface.ts
-│   │   │   │   ├── tmdb-genre.interface.ts
-│   │   │   │   ├── tmdb-response.interface.ts
-│   │   │   │   └── tmdb-config.interface.ts
 │   │   │   ├── tmdb.service.ts
-│   │   │   ├── tmdb.service.spec.ts
+│   │   │   ├── tmdb-sync.service.ts  # Cron sync service
 │   │   │   └── tmdb.module.ts
 │   │   │
-│   │   ├── cache/               # Redis caching module
-│   │   │   ├── cache.service.ts
-│   │   │   ├── cache.service.spec.ts
-│   │   │   └── cache.module.ts
+│   │   ├── health/              # Health check module
+│   │   │   ├── dto/
+│   │   │   ├── health.controller.ts
+│   │   │   └── health.module.ts
 │   │   │
 │   │   └── database/            # Database configuration module
 │   │       ├── database.module.ts
-│   │       └── database.providers.ts
+│   │       └── schemas/         # Shared database schemas
 │   │
 │   ├── common/                  # Shared/common utilities
 │   │   ├── decorators/          # Custom decorators
 │   │   │   ├── current-user.decorator.ts
-│   │   │   ├── roles.decorator.ts
 │   │   │   ├── public.decorator.ts
-│   │   │   └── api-paginated-response.decorator.ts
+│   │   │   └── skip-throttle.decorator.ts
 │   │   ├── filters/             # Exception filters
-│   │   │   ├── http-exception.filter.ts
 │   │   │   ├── all-exceptions.filter.ts
+│   │   │   ├── http-exception.filter.ts
 │   │   │   └── mongo-exception.filter.ts
 │   │   ├── guards/              # Common guards
-│   │   │   └── throttle.guard.ts
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   └── throttler.guard.ts
 │   │   ├── interceptors/        # HTTP interceptors
+│   │   │   ├── cache.interceptor.ts
 │   │   │   ├── logging.interceptor.ts
-│   │   │   ├── transform.interceptor.ts
-│   │   │   ├── timeout.interceptor.ts
-│   │   │   └── cache.interceptor.ts
+│   │   │   └── transform.interceptor.ts
 │   │   ├── pipes/               # Validation pipes
-│   │   │   ├── validation.pipe.ts
-│   │   │   ├── parse-objectid.pipe.ts
-│   │   │   └── trim.pipe.ts
+│   │   │   └── validation.pipe.ts
+│   │   ├── strategies/          # Passport strategies
+│   │   │   └── jwt.strategy.ts
+│   │   ├── schemas/             # Base schemas
+│   │   │   └── base.schema.ts
+│   │   ├── exceptions/          # Custom exceptions
+│   │   │   ├── business.exception.ts
+│   │   │   └── not-found.exception.ts
 │   │   ├── dto/                 # Shared DTOs
-│   │   │   ├── pagination.dto.ts
-│   │   │   ├── pagination-response.dto.ts
-│   │   │   └── base-response.dto.ts
 │   │   ├── interfaces/          # Shared interfaces
-│   │   │   ├── paginated-result.interface.ts
 │   │   │   ├── api-response.interface.ts
-│   │   │   └── user-request.interface.ts
+│   │   │   ├── error-response.interface.ts
+│   │   │   └── jwt-payload.interface.ts
 │   │   ├── constants/           # Application constants
-│   │   │   ├── cache-keys.constant.ts
-│   │   │   ├── roles.constant.ts
-│   │   │   ├── messages.constant.ts
-│   │   │   └── regex.constant.ts
+│   │   │   └── messages.constant.ts
 │   │   └── utils/               # Utility functions
-│   │       ├── helpers.util.ts
-│   │       └── date.util.ts
+│   │       └── cron.utils.ts
 │   │
 │   ├── config/                  # Configuration files
 │   │   ├── app.config.ts        # Application config
@@ -163,33 +207,107 @@ KIB/
 │   │   ├── redis.config.ts      # Redis config
 │   │   ├── jwt.config.ts        # JWT config
 │   │   ├── tmdb.config.ts       # TMDB API config
-│   │   └── validation.config.ts # Validation config
+│   │   └── env.validation.ts    # Environment validation
 │   │
 │   ├── app.module.ts            # Root application module
-│   ├── app.controller.ts        # Root controller (health check)
-│   ├── app.service.ts           # Root service
 │   └── main.ts                  # Application entry point
 │
 ├── test/                        # E2E tests directory
 │   ├── app.e2e-spec.ts         # Application E2E tests
-│   ├── movies.e2e-spec.ts      # Movies E2E tests
-│   ├── auth.e2e-spec.ts        # Auth E2E tests
-│   ├── ratings.e2e-spec.ts     # Ratings E2E tests
-│   ├── watchlist.e2e-spec.ts   # Watchlist E2E tests
 │   └── jest-e2e.json           # Jest E2E configuration
 │
+├── .env                         # Environment variables (not in git)
 ├── .env.example                 # Environment variables template
+├── .dockerignore               # Docker ignore rules
+├── .eslintrc.js                # ESLint configuration
 ├── .gitignore                  # Git ignore rules
+├── .prettierrc                 # Prettier configuration
+├── docker-compose.yml          # Docker Compose configuration
+├── Dockerfile                  # Multi-stage Docker build
 ├── nest-cli.json               # NestJS CLI configuration
 ├── package.json                # NPM dependencies and scripts
+├── package-lock.json           # NPM lock file
 ├── tsconfig.json               # TypeScript configuration
 ├── tsconfig.build.json         # TypeScript build configuration
 ├── ARCHITECTURE.md             # Architecture documentation
 ├── PROJECT_STRUCTURE.md        # This file
-└── README.md                   # Project README
+├── README.md                   # Project README
+├── SWAGGER_SETUP.md            # Swagger documentation guide
+└── JWT_USAGE_EXAMPLES.md       # JWT authentication examples
 ```
 
 ## Module Descriptions
+
+### Layered Architecture Pattern
+
+Each feature module follows a consistent 3-layer architecture:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     CLIENT / HTTP REQUEST                        │
+│                  (GET /api/v1/movies?page=1)                    │
+└────────────────────────────┬─────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    PRESENTATION LAYER                            │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  movies.controller.ts                                     │  │
+│  │  • Route definitions (@Get, @Post, @Patch, @Delete)      │  │
+│  │  • Request validation (DTOs)                              │  │
+│  │  • Response formatting                                    │  │
+│  │  • Guards (@UseGuards(JwtAuthGuard))                     │  │
+│  │  • Swagger documentation (@ApiTags, @ApiOperation)       │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└────────────────────────────┬─────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    BUSINESS LOGIC LAYER                          │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  movies.service.ts                                        │  │
+│  │  • Business rules & validation                            │  │
+│  │  • Data transformation & mapping                          │  │
+│  │  • Orchestration between repositories                     │  │
+│  │  • Error handling (throw NotFoundException)              │  │
+│  │  • Aggregation logic (ratings, counts)                   │  │
+│  │  • Cache management decisions                            │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└────────────────────────────┬─────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    DATA ACCESS LAYER                             │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  movies.repository.ts (Optional Pattern)                  │  │
+│  │  • Database query construction                            │  │
+│  │  • Mongoose operations (find, create, update, delete)    │  │
+│  │  • Aggregation pipelines                                  │  │
+│  │  • Index optimization                                     │  │
+│  │  • Transaction handling                                   │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└────────────────────────────┬─────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    DATABASE LAYER                                │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  MongoDB (via Mongoose)                                   │  │
+│  │  • movie.schema.ts - Document structure                   │  │
+│  │  • Indexes for performance                                │  │
+│  │  • Validation rules                                       │  │
+│  │  • Virtuals & methods                                     │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+
+Supporting Layers (Cross-Cutting):
+┌─────────────────────────────────────────────────────────────────┐
+│  DTO Layer: movie-query.dto.ts, movie-response.dto.ts          │
+│  • Input validation (class-validator)                           │
+│  • Output transformation (class-transformer)                    │
+│  • Swagger schema generation (@ApiProperty)                     │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ### Feature Modules (`src/modules/`)
 
@@ -255,18 +373,14 @@ KIB/
 - `watchlist.schema.ts`: Watchlist schema with references
 
 #### Users Module
-**Purpose**: User management  
+**Purpose**: Lightweight user data management  
 **Responsibilities**:
-- User CRUD operations
-- User profile management
-- Password hashing and validation
-- User data sanitization (exclude password)
-- Unique email/username validation
+- User schema definition (username, email, password)
+- Used primarily by Auth module
+- No dedicated controller/service (handled by auth)
 
 **Key Files**:
-- `users.controller.ts`: User endpoints
-- `users.service.ts`: User operations
-- `user.schema.ts`: User document schema with pre-save hooks
+- `user.schema.ts`: User document schema with password hashing hooks
 
 #### Auth Module
 **Purpose**: Authentication and authorization  
@@ -276,15 +390,13 @@ KIB/
 - JWT token generation and validation
 - Password hashing (bcrypt)
 - Route protection with guards
-- Token refresh (optional)
-- Role-based access control
+- User repository operations
 
 **Key Files**:
 - `auth.controller.ts`: Auth endpoints (register, login)
 - `auth.service.ts`: Authentication logic
-- `jwt.strategy.ts`: Passport JWT strategy
-- `jwt-auth.guard.ts`: Protect routes
-- `roles.guard.ts`: Role-based authorization
+- `auth.repository.ts`: User data access operations
+- Guards and strategies located in `common/` directory
 
 #### TMDB Module
 **Purpose**: Integration with TMDB API  
@@ -293,25 +405,24 @@ KIB/
 - Fetch genres from TMDB API
 - Handle API rate limits
 - Transform TMDB responses to app format
-- Sync data periodically
+- Automated daily sync via cron jobs (TmdbSyncService)
 - Error handling for external API
 
 **Key Files**:
 - `tmdb.service.ts`: TMDB API client
-- `tmdb-*.interface.ts`: Type definitions for TMDB responses
+- `tmdb-sync.service.ts`: Cron-based sync service (1 AM for genres, 2 AM for movies)
+- `interfaces/`: Type definitions for TMDB responses
 
-#### Cache Module
-**Purpose**: Redis caching layer  
+#### Health Module
+**Purpose**: Application health monitoring  
 **Responsibilities**:
-- Cache frequently accessed data
-- Cache invalidation strategies
-- TTL management
-- Cache key generation
-- Get/set/delete operations
-- Pattern-based deletion
+- Application health check endpoint
+- Database connectivity check
+- Redis connectivity check
+- Service status monitoring
 
 **Key Files**:
-- `cache.service.ts`: Redis operations wrapper
+- `health.controller.ts`: Health check endpoints
 
 #### Database Module
 **Purpose**: MongoDB configuration and connection  
@@ -320,78 +431,81 @@ KIB/
 - Database connection management
 - Connection error handling
 - Connection pooling
+- Global database setup
 
 **Key Files**:
-- `database.module.ts`: Database setup
-- `database.providers.ts`: Database providers (optional)
+- `database.module.ts`: Database module setup
+- `schemas/`: Shared database schemas
 
 ### Common Directory (`src/common/`)
 
 #### Decorators
 Custom decorators for:
-- **@CurrentUser()**: Extract user from request object
-- **@Roles()**: Define required roles for routes
-- **@Public()**: Mark routes as public (skip auth)
-- **@ApiPaginatedResponse()**: Swagger pagination decorator
+- **@CurrentUser()**: Extract user from request object (after JWT auth)
+- **@Public()**: Mark routes as public (skip JWT authentication)
+- **@SkipThrottle()**: Skip rate limiting for specific endpoints
 
 #### Filters
 Exception filters for:
-- **HttpExceptionFilter**: HTTP exceptions with custom format
-- **AllExceptionsFilter**: Catch-all exception handler
+- **AllExceptionsFilter**: Catch-all exception handler with logging
+- **HttpExceptionFilter**: HTTP exceptions with standardized format
 - **MongoExceptionFilter**: MongoDB-specific errors (duplicate key, validation)
 
 #### Guards
 Security guards for:
-- **ThrottleGuard**: Rate limiting
-- Authentication guard (in auth module)
-- Authorization guard (in auth module)
+- **JwtAuthGuard**: JWT authentication guard (Passport-based)
+- **CustomThrottlerGuard**: Custom rate limiting (100 requests/minute)
 
 #### Interceptors
 HTTP interceptors for:
-- **LoggingInterceptor**: Request/response logging
-- **TransformInterceptor**: Response transformation
-- **TimeoutInterceptor**: Request timeout handling
-- **CacheInterceptor**: HTTP caching
+- **LoggingInterceptor**: Request/response logging with timing
+- **TransformInterceptor**: Standardized response transformation
+- **CacheInterceptor**: HTTP caching with Redis
 
 #### Pipes
 Validation pipes for:
-- **ValidationPipe**: Request body/query validation
-- **ParseObjectIdPipe**: Validate and parse MongoDB ObjectIds
-- **TrimPipe**: Trim string inputs
+- **ValidationPipe**: Global request body/query validation (configured in main.ts)
+
+#### Strategies
+Passport strategies for:
+- **JwtStrategy**: JWT token validation and user extraction
+
+#### Schemas
+Base schemas:
+- **BaseSchema**: Common schema configuration (timestamps, transformations)
+
+#### Exceptions
+Custom exception classes:
+- **BusinessException**: Business logic exceptions
+- **NotFoundException**: Resource not found exceptions
 
 #### DTOs (Data Transfer Objects)
 Shared DTOs:
-- **PaginationDto**: Query params for pagination (page, limit, sort)
-- **PaginationResponseDto**: Paginated response wrapper
-- **BaseResponseDto**: Standard API response format
+- Located in module-specific dto/ folders
 
 #### Interfaces
 Shared TypeScript interfaces:
-- **PaginatedResult**: Generic paginated data structure
-- **ApiResponse**: Standard response structure
-- **UserRequest**: Extended Express Request with user
+- **ApiResponse**: Standard API response structure
+- **ErrorResponse**: Error response format
+- **JwtPayload**: JWT token payload structure
 
 #### Constants
 Application-wide constants:
-- **CACHE_KEYS**: Cache key patterns
-- **ROLES**: User role definitions
-- **MESSAGES**: Success/error messages
-- **REGEX**: Regular expressions for validation
+- **MESSAGES**: Success/error message templates
 
 #### Utils
 Utility functions:
-- **helpers.util.ts**: Common helper functions
-- **date.util.ts**: Date manipulation utilities
+- **cron.utils.ts**: Cron job helper utilities
 
 ### Configuration (`src/config/`)
 
 Centralized configuration management using `@nestjs/config`:
-- **app.config.ts**: Port, environment, API prefix
+- **app.config.ts**: Port, environment, API prefix, CORS settings, pagination defaults
 - **database.config.ts**: MongoDB connection URI
-- **redis.config.ts**: Redis connection settings
-- **jwt.config.ts**: JWT secret and expiration
-- **tmdb.config.ts**: TMDB API key and base URL
-- **validation.config.ts**: Global validation pipe config
+- **redis.config.ts**: Redis connection settings (host, port, password, TTL)
+- **jwt.config.ts**: JWT secret and expiration time
+- **tmdb.config.ts**: TMDB API key, base URL, image base URL, sync configuration
+- **env.validation.ts**: Environment variable validation schema
 
 ## File Naming Conventions
 
@@ -420,9 +534,14 @@ Centralized configuration management using `@nestjs/config`:
 ### DTOs
 - Format: `{action}-{entity}.dto.ts`
 - Examples: 
-  - `create-movie.dto.ts`
-  - `movie-response.dto.ts`
+  - `create-rating.dto.ts`
+  - `rating-response.dto.ts`
   - `movie-query.dto.ts`
+  - `paginated-movies-response.dto.ts`
+
+### Repositories
+- Format: `{feature}.repository.ts`
+- Example: `movies.repository.ts`
 
 ### Tests
 - Format: `{filename}.spec.ts` (unit tests)
@@ -434,36 +553,45 @@ Centralized configuration management using `@nestjs/config`:
 AppModule (Root)
 ├── ConfigModule (Global)
 ├── DatabaseModule (Global)
-├── CacheModule (Global)
+├── CacheModule (Global - Redis)
+├── ScheduleModule (Global - Cron jobs)
+├── ThrottlerModule (Global - Rate limiting)
 │
 ├── AuthModule
-│   └── UsersModule
+│   └── Uses User schema from users/schemas
 │
 ├── MoviesModule
-│   ├── GenresModule
-│   ├── TMDBModule
-│   └── CacheModule
+│   ├── GenresModule (for genre references)
+│   └── CacheModule (implicit)
 │
 ├── RatingsModule
-│   ├── MoviesModule
-│   └── UsersModule
+│   ├── MoviesModule (update average ratings)
+│   └── Uses User reference
 │
 ├── WatchlistModule
-│   ├── MoviesModule
-│   └── UsersModule
+│   ├── MoviesModule (movie references)
+│   └── Uses User reference
 │
-└── GenresModule
-    └── TMDBModule
+├── GenresModule
+│   └── CacheModule (implicit)
+│
+├── TmdbModule
+│   ├── HttpModule (Axios)
+│   ├── GenresRepository
+│   └── MoviesRepository
+│
+└── HealthModule
+    ├── DatabaseModule
+    └── CacheModule
 ```
 
 ## Mongoose Schema Patterns
 
 ### Base Schema Options
-All schemas should include:
+All schemas extend from BaseSchema or include standard options:
 ```typescript
 {
   timestamps: true,  // Auto-manage createdAt and updatedAt
-  versionKey: false, // Disable __v field
   toJSON: {
     transform: (doc, ret) => {
       ret.id = ret._id;
@@ -475,32 +603,25 @@ All schemas should include:
 }
 ```
 
-### Virtual Properties
-Use virtuals for computed fields that don't need to be stored:
-```typescript
-// Example: Full name virtual
-schema.virtual('fullName').get(function() {
-  return `${this.firstName} ${this.lastName}`;
-});
-```
-
 ### Indexes
 Define indexes for frequently queried fields:
 ```typescript
 @Schema()
 export class Movie {
   @Prop({ unique: true, index: true })
-  tmdbId: number;
+  tmdb_id: number;
   
   @Prop({ index: true })
   title: string;
+  
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Genre' }], index: true })
+  genres: Types.ObjectId[];
 }
 ```
 
 ### Pre/Post Hooks
-Use hooks for business logic:
+Used in User schema for password hashing:
 ```typescript
-// Hash password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 10);

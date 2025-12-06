@@ -3,6 +3,112 @@
 ## Overview
 This is a RESTful API application built with NestJS that integrates with The Movie Database (TMDB) API to provide movie information, ratings, and watchlist functionality.
 
+## System Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              CLIENT LAYER                                    │
+│                    (Web Browser, Mobile App, Postman)                        │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │ HTTP/HTTPS
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           API GATEWAY LAYER                                  │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  NestJS Main (Port 8080)                                             │   │
+│  │  • CORS Middleware                                                   │   │
+│  │  • Global Exception Filters                                          │   │
+│  │  • Validation Pipe                                                   │   │
+│  │  • Logging Interceptor                                               │   │
+│  │  • Transform Interceptor                                             │   │
+│  │  • Rate Limiting (100 req/min)                                       │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         AUTHENTICATION LAYER                                 │
+│  ┌──────────────────┐      ┌──────────────────┐                            │
+│  │  JWT Strategy    │◄─────│  Auth Module     │                            │
+│  │  (Passport.js)   │      │  • Login         │                            │
+│  └──────────────────┘      │  • Register      │                            │
+│                            │  • JWT Guard     │                            │
+│                            └──────────────────┘                            │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          APPLICATION LAYER                                   │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
+│  │ Movies   │  │ Genres   │  │ Ratings  │  │Watchlist │  │  Health  │    │
+│  │ Module   │  │ Module   │  │ Module   │  │ Module   │  │  Module  │    │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘    │
+│       │             │              │             │             │           │
+│       ▼             ▼              ▼             ▼             ▼           │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
+│  │Controller│  │Controller│  │Controller│  │Controller│  │Controller│    │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘    │
+│       │             │              │             │             │           │
+│       ▼             ▼              ▼             ▼             ▼           │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
+│  │ Service  │  │ Service  │  │ Service  │  │ Service  │  │ Service  │    │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘    │
+│       │             │              │             │             │           │
+│       ▼             ▼              ▼             ▼             ▼           │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐                  │
+│  │Repository│  │Repository│  │Repository│  │Repository│                  │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘                  │
+└───────┼─────────────┼──────────────┼─────────────┼──────────────────────────┘
+        │             │              │             │
+        └─────────────┴──────────────┴─────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CACHING LAYER                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Redis Cache (cache-manager-redis-yet)                              │   │
+│  │  • TTL: 120 seconds (configurable)                                  │   │
+│  │  • Cache Interceptor for GET requests                               │   │
+│  │  • Genre caching (2 min TTL)                                        │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        DATA PERSISTENCE LAYER                                │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  MongoDB (Mongoose ODM)                                               │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │  │
+│  │  │   Movies    │  │   Genres    │  │   Ratings   │  │  Watchlist  │ │  │
+│  │  │ Collection  │  │ Collection  │  │ Collection  │  │ Collection  │ │  │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘ │  │
+│  │  ┌─────────────┐                                                     │  │
+│  │  │    Users    │                                                     │  │
+│  │  │ Collection  │                                                     │  │
+│  │  └─────────────┘                                                     │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       EXTERNAL SERVICES LAYER                                │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  TMDB API (The Movie Database)                                        │  │
+│  │  • Fetch Popular Movies                                               │  │
+│  │  • Fetch Genres                                                       │  │
+│  │  • Auto-sync via Cron (Daily at 2 AM UTC)                            │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        BACKGROUND JOBS LAYER                                 │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  Cron Jobs (@nestjs/schedule)                                         │  │
+│  │  • Sync Genres: 0 1 * * * (1 AM UTC daily)                           │  │
+│  │  • Sync Movies: 0 2 * * * (2 AM UTC daily, 50 pages)                │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ## Architecture Pattern
 The application follows a **modular monolithic architecture** with clear separation of concerns:
 - **Layered Architecture**: Controller → Service → Repository
@@ -45,103 +151,448 @@ src/
 ├── modules/                  # Feature modules
 │   ├── movies/              # Movie management
 │   │   ├── dto/             # Data Transfer Objects
+│   │   │   ├── movie-query.dto.ts
+│   │   │   ├── movie-response.dto.ts
+│   │   │   ├── paginated-movies-response.dto.ts
+│   │   │   ├── search-movie.dto.ts
+│   │   │   └── index.ts
 │   │   ├── schemas/         # Mongoose schemas
+│   │   │   └── movie.schema.ts
 │   │   ├── interfaces/      # TypeScript interfaces
 │   │   ├── movies.controller.ts
+│   │   ├── movies.controller.spec.ts
 │   │   ├── movies.service.ts
+│   │   ├── movies.service.spec.ts
 │   │   ├── movies.repository.ts
 │   │   └── movies.module.ts
 │   │
 │   ├── genres/              # Genre management
 │   │   ├── dto/
+│   │   │   ├── genre-response.dto.ts
+│   │   │   └── index.ts
 │   │   ├── schemas/
+│   │   ├── interfaces/
 │   │   ├── genres.controller.ts
+│   │   ├── genres.controller.spec.ts
 │   │   ├── genres.service.ts
+│   │   ├── genres.service.spec.ts
+│   │   ├── genres.repository.ts
 │   │   └── genres.module.ts
 │   │
 │   ├── ratings/             # Movie rating system
 │   │   ├── dto/
+│   │   │   ├── create-rating.dto.ts
+│   │   │   ├── update-rating.dto.ts
+│   │   │   ├── rating-response.dto.ts
+│   │   │   ├── paginated-ratings-response.dto.ts
+│   │   │   └── index.ts
 │   │   ├── schemas/
+│   │   ├── interfaces/
 │   │   ├── ratings.controller.ts
+│   │   ├── ratings.controller.spec.ts
 │   │   ├── ratings.service.ts
+│   │   ├── ratings.service.spec.ts
+│   │   ├── ratings.repository.ts
 │   │   └── ratings.module.ts
 │   │
 │   ├── watchlist/           # Watchlist & favorites
 │   │   ├── dto/
+│   │   │   ├── add-to-watchlist.dto.ts
+│   │   │   ├── update-watchlist.dto.ts
+│   │   │   ├── watchlist-response.dto.ts
+│   │   │   ├── paginated-watchlist-response.dto.ts
+│   │   │   └── index.ts
 │   │   ├── schemas/
+│   │   ├── interfaces/
 │   │   ├── watchlist.controller.ts
+│   │   ├── watchlist.controller.spec.ts
 │   │   ├── watchlist.service.ts
+│   │   ├── watchlist.service.spec.ts
+│   │   ├── watchlist.repository.ts
 │   │   └── watchlist.module.ts
 │   │
-│   ├── users/               # User management
-│   │   ├── dto/
+│   ├── users/               # User management (lightweight)
 │   │   ├── schemas/
-│   │   ├── users.controller.ts
-│   │   ├── users.service.ts
-│   │   └── users.module.ts
+│   │   │   └── user.schema.ts
+│   │   └── interfaces/
 │   │
 │   ├── auth/                # Authentication
 │   │   ├── dto/
-│   │   ├── guards/          # Auth guards
-│   │   ├── strategies/      # Passport strategies
+│   │   │   ├── register.dto.ts
+│   │   │   └── login.dto.ts
 │   │   ├── auth.controller.ts
+│   │   ├── auth.controller.spec.ts
 │   │   ├── auth.service.ts
+│   │   ├── auth.service.spec.ts
+│   │   ├── auth.repository.ts
+│   │   ├── auth.repository.spec.ts
 │   │   └── auth.module.ts
 │   │
 │   ├── tmdb/                # TMDB API integration
 │   │   ├── interfaces/      # TMDB response types
 │   │   ├── tmdb.service.ts
+│   │   ├── tmdb-sync.service.ts  # Cron sync service
 │   │   └── tmdb.module.ts
 │   │
-│   ├── cache/               # Redis caching
-│   │   ├── cache.service.ts
-│   │   └── cache.module.ts
+│   ├── health/              # Health check module
+│   │   ├── dto/
+│   │   ├── health.controller.ts
+│   │   └── health.module.ts
 │   │
 │   └── database/            # Database configuration
-│       └── database.module.ts
+│       ├── database.module.ts
+│       └── schemas/         # Shared schemas
 │
 ├── common/                  # Shared utilities
 │   ├── decorators/          # Custom decorators
+│   │   ├── current-user.decorator.ts
+│   │   ├── public.decorator.ts
+│   │   └── skip-throttle.decorator.ts
 │   ├── filters/             # Exception filters
+│   │   ├── all-exceptions.filter.ts
+│   │   ├── http-exception.filter.ts
+│   │   └── mongo-exception.filter.ts
 │   ├── guards/              # Common guards
+│   │   ├── jwt-auth.guard.ts
+│   │   └── throttler.guard.ts
 │   ├── interceptors/        # HTTP interceptors
+│   │   ├── cache.interceptor.ts
+│   │   ├── logging.interceptor.ts
+│   │   └── transform.interceptor.ts
 │   ├── pipes/               # Validation pipes
+│   │   └── validation.pipe.ts
+│   ├── strategies/          # Passport strategies
+│   │   └── jwt.strategy.ts
+│   ├── schemas/             # Base schemas
+│   │   └── base.schema.ts
+│   ├── exceptions/          # Custom exceptions
+│   │   ├── business.exception.ts
+│   │   └── not-found.exception.ts
 │   ├── dto/                 # Shared DTOs
 │   ├── interfaces/          # Shared interfaces
-│   └── constants/           # Constants
+│   │   ├── api-response.interface.ts
+│   │   ├── error-response.interface.ts
+│   │   └── jwt-payload.interface.ts
+│   ├── constants/           # Constants
+│   │   └── messages.constant.ts
+│   └── utils/               # Utility functions
+│       └── cron.utils.ts
 │
 ├── config/                  # Configuration
 │   ├── app.config.ts
 │   ├── database.config.ts
 │   ├── redis.config.ts
 │   ├── jwt.config.ts
-│   └── tmdb.config.ts
+│   ├── tmdb.config.ts
+│   └── env.validation.ts
 │
 ├── app.module.ts            # Root module
 └── main.ts                  # Application entry point
 ```
 
-## Data Flow
+## Request Flow Diagrams
+
+### Authentication Flow
+```
+┌──────────┐
+│  Client  │
+└─────┬────┘
+      │ POST /api/v1/auth/register
+      │ { username, email, password }
+      ▼
+┌─────────────────────┐
+│  Auth Controller    │
+└─────┬───────────────┘
+      │ Validate DTO
+      ▼
+┌─────────────────────┐
+│   Auth Service      │
+└─────┬───────────────┘
+      │ 1. Check if user exists
+      │ 2. Hash password (bcrypt)
+      │ 3. Create user
+      ▼
+┌─────────────────────┐
+│  Auth Repository    │
+└─────┬───────────────┘
+      │ Save to DB
+      ▼
+┌─────────────────────┐
+│     MongoDB         │
+│  (users collection) │
+└─────┬───────────────┘
+      │ Return user
+      ▼
+┌─────────────────────┐
+│   Auth Service      │
+│ Generate JWT Token  │
+└─────┬───────────────┘
+      │ Return { access_token, user }
+      ▼
+┌──────────┐
+│  Client  │
+└──────────┘
+```
+
+### Protected Endpoint Flow (with JWT)
+```
+┌──────────┐
+│  Client  │
+└─────┬────┘
+      │ GET /api/v1/movies
+      │ Headers: { Authorization: Bearer <token> }
+      ▼
+┌─────────────────────────────┐
+│  JWT Auth Guard             │
+│  1. Extract token           │
+│  2. Verify with JWT_SECRET  │
+│  3. Decode payload          │
+└─────┬───────────────────────┘
+      │ Valid? ✓
+      ▼
+┌─────────────────────────────┐
+│  Rate Limiter Guard         │
+│  Check: 100 req/min         │
+└─────┬───────────────────────┘
+      │ Allowed? ✓
+      ▼
+┌─────────────────────────────┐
+│  Movies Controller          │
+│  @Get()                     │
+└─────┬───────────────────────┘
+      │ Parse query params
+      ▼
+┌─────────────────────────────┐
+│  Cache Interceptor          │
+│  Check Redis cache          │
+└─────┬───────────────────────┘
+      │ Cache miss?
+      ▼
+┌─────────────────────────────┐
+│  Movies Service             │
+│  Apply filters & sorting    │
+└─────┬───────────────────────┘
+      │
+      ▼
+┌─────────────────────────────┐
+│  Movies Repository          │
+│  Build MongoDB query        │
+└─────┬───────────────────────┘
+      │
+      ▼
+┌─────────────────────────────┐
+│  MongoDB                    │
+│  Find & aggregate           │
+└─────┬───────────────────────┘
+      │ Return documents
+      ▼
+┌─────────────────────────────┐
+│  Transform Interceptor      │
+│  Format response            │
+└─────┬───────────────────────┘
+      │ Store in Redis cache
+      ▼
+┌─────────────────────────────┐
+│  Logging Interceptor        │
+│  Log request/response       │
+└─────┬───────────────────────┘
+      │ Return JSON
+      ▼
+┌──────────┐
+│  Client  │
+└──────────┘
+```
+
+### Rating a Movie Flow
+```
+┌──────────┐
+│  Client  │
+└─────┬────┘
+      │ POST /api/v1/ratings
+      │ { movie_id, rating: 8, review: "Great!" }
+      │ Headers: { Authorization: Bearer <token> }
+      ▼
+┌─────────────────────────────┐
+│  JWT Auth Guard             │
+│  Extract user_id from token │
+└─────┬───────────────────────┘
+      │
+      ▼
+┌─────────────────────────────┐
+│  Ratings Controller         │
+│  @Post()                    │
+└─────┬───────────────────────┘
+      │ Validate DTO
+      ▼
+┌─────────────────────────────┐
+│  Ratings Service            │
+│  1. Check movie exists      │
+│  2. Check duplicate rating  │
+└─────┬───────────────────────┘
+      │
+      ▼
+┌─────────────────────────────┐
+│  Ratings Repository         │
+│  Save rating document       │
+└─────┬───────────────────────┘
+      │
+      ▼
+┌─────────────────────────────┐
+│  MongoDB                    │
+│  Insert into ratings        │
+└─────┬───────────────────────┘
+      │ Success
+      ▼
+┌─────────────────────────────┐
+│  Ratings Service            │
+│  updateMovieAverageRating() │
+└─────┬───────────────────────┘
+      │ 1. Calculate average
+      │ 2. Count total ratings
+      ▼
+┌─────────────────────────────┐
+│  Movies Repository          │
+│  updateAverageRating()      │
+└─────┬───────────────────────┘
+      │ Update movie document
+      ▼
+┌─────────────────────────────┐
+│  MongoDB                    │
+│  Update movies collection   │
+└─────┬───────────────────────┘
+      │ Return updated rating
+      ▼
+┌──────────┐
+│  Client  │
+└──────────┘
+```
+
+### TMDB Auto-Sync Flow (Cron Job)
+```
+┌─────────────────────────────┐
+│  Cron Scheduler             │
+│  Daily at 2 AM UTC          │
+└─────┬───────────────────────┘
+      │ Trigger
+      ▼
+┌─────────────────────────────┐
+│  TMDB Sync Service          │
+│  syncMovies()               │
+└─────┬───────────────────────┘
+      │ Loop: 50 pages
+      ▼
+┌─────────────────────────────┐
+│  TMDB Service               │
+│  fetchMovies(page)          │
+└─────┬───────────────────────┘
+      │ HTTP GET
+      ▼
+┌─────────────────────────────┐
+│  TMDB API                   │
+│  /movie/popular?page=N      │
+└─────┬───────────────────────┘
+      │ Return movies array
+      ▼
+┌─────────────────────────────┐
+│  TMDB Sync Service          │
+│  Transform & validate       │
+└─────┬───────────────────────┘
+      │ For each movie
+      ▼
+┌─────────────────────────────┐
+│  Movies Repository          │
+│  upsert (update or insert)  │
+└─────┬───────────────────────┘
+      │ Check by tmdb_id
+      ▼
+┌─────────────────────────────┐
+│  MongoDB                    │
+│  Update or create document  │
+└─────┬───────────────────────┘
+      │ Success
+      ▼
+┌─────────────────────────────┐
+│  Logger                     │
+│  Log sync completion        │
+└─────────────────────────────┘
+```
+
+## Module Dependency Graph
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                           AppModule (Root)                            │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │ Global Modules:                                                 │ │
+│  │  • ConfigModule (env variables)                                │ │
+│  │  • CacheModule (Redis)                                         │ │
+│  │  • ThrottlerModule (Rate limiting)                             │ │
+│  │  • ScheduleModule (Cron jobs)                                  │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────────────┘
+                                 │
+         ┌───────────────────────┼───────────────────────┐
+         ▼                       ▼                       ▼
+┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐
+│ DatabaseModule   │   │   AuthModule     │   │  HealthModule    │
+│                  │   │                  │   │                  │
+│ • MongoDB setup  │   │ • JWT Strategy   │   │ • DB check       │
+│ • Mongoose       │   │ • Login/Register │   │ • Redis check    │
+└────────┬─────────┘   └────────┬─────────┘   └──────────────────┘
+         │                      │
+         │                      │ (uses)
+         │                      ▼
+         │             ┌──────────────────┐
+         │             │ Common/Strategies│
+         │             │ Common/Guards    │
+         │             └──────────────────┘
+         │
+         │ (imported by all feature modules)
+         │
+         ├──────────┬──────────┬──────────┬──────────┐
+         ▼          ▼          ▼          ▼          ▼
+   ┌─────────┐┌─────────┐┌─────────┐┌─────────┐┌─────────┐
+   │ Movies  ││ Genres  ││ Ratings ││Watchlist││  TMDB   │
+   │ Module  ││ Module  ││ Module  ││ Module  ││ Module  │
+   └────┬────┘└────┬────┘└────┬────┘└────┬────┘└────┬────┘
+        │          │          │          │          │
+        │          │          ├──────────┤          │
+        │          │          │  depends │          │
+        │          │          ▼          ▼          │
+        │          │     MoviesModule (shared)      │
+        │          │                                 │
+        │          └─────────────┬───────────────────┘
+        │                        │ (uses for sync)
+        └────────────────────────┘
+
+Dependencies:
+• RatingsModule → MoviesModule (update average rating)
+• WatchlistModule → MoviesModule (validate movie exists)
+• TMDBModule → MoviesModule, GenresModule (sync data)
+• All modules → DatabaseModule (MongoDB connection)
+• All modules → ConfigModule (environment variables)
+```
+
+## Data Flow Patterns
 
 ### 1. Initial TMDB Sync
 ```
-TMDB API → TMDB Service → Movies Service → MongoDB
+TMDB API → TMDB Service → Movies/Genres Service → Repository → MongoDB
 ```
 
-### 2. Movie Listing Request
+### 2. Cached Movie Listing
 ```
-Client → Controller → Cache Check → Service → Repository → MongoDB
-                         ↓ (cache hit)
-                      Return cached data
+Client → Controller → Redis (Cache Hit) → Return Data
+                          ↓ (Cache Miss)
+                    Service → Repository → MongoDB → Cache Result
 ```
 
-### 3. Rating a Movie
+### 3. Rating with Average Calculation
 ```
-Client → Auth Guard → Controller → Rating Service → MongoDB
-                                        ↓
-                                  Clear movie cache
-                                        ↓
-                                  Recalculate average
+Client → Rating Service → Create Rating → Update Movie Average
+                              ↓                    ↓
+                          MongoDB             MongoDB
+                        (ratings)             (movies)
 ```
 
 ## MongoDB Schema Design
@@ -280,48 +731,46 @@ watchlist:user:{userId}
 - **On Watchlist Update**: Clear user's watchlist cache
 
 ### TTL Strategy
-- Movie lists: 5 minutes
-- Movie details: 10 minutes
-- Genres: 1 hour
-- Search results: 5 minutes
-- Ratings: 15 minutes
-- Watchlist: 10 minutes
+- Genres list: 2 minutes (120 seconds) - cached with CacheInterceptor
+- Global Redis TTL: 120 seconds (configurable via REDIS_TTL)
+- Cache invalidation on data mutations (ratings, watchlist changes)
+- Strategic caching for read-heavy endpoints
 
 ## API Endpoints
 
 ### Movies
-- `GET /api/v1/movies` - List movies (paginated, filterable)
-- `GET /api/v1/movies/:id` - Get movie details
-- `GET /api/v1/movies/search` - Search movies
-- `POST /api/v1/movies/sync` - Sync from TMDB (admin)
-- `GET /api/v1/movies/genre/:genreId` - Filter by genre
+- `GET /api/v1/movies` - List movies (paginated, filterable by genre, year, rating)
+- `GET /api/v1/movies/search` - Search movies by title
+- `GET /api/v1/movies/:id` - Get movie details by ID
 
 ### Ratings
-- `POST /api/v1/movies/:movieId/rate` - Rate a movie
-- `GET /api/v1/movies/:movieId/ratings` - Get movie ratings
-- `PUT /api/v1/ratings/:id` - Update rating
+- `POST /api/v1/ratings` - Rate a movie (1-10 scale)
+- `GET /api/v1/ratings` - Get user's ratings
+- `GET /api/v1/ratings/:id` - Get rating by ID
+- `PATCH /api/v1/ratings/:id` - Update rating
 - `DELETE /api/v1/ratings/:id` - Delete rating
-- `GET /api/v1/users/me/ratings` - Get user's ratings
+- `GET /api/v1/ratings/movie/:movieId` - Get all ratings for a movie
 
 ### Watchlist
-- `POST /api/v1/watchlist` - Add to watchlist
-- `GET /api/v1/watchlist` - Get user's watchlist
+- `POST /api/v1/watchlist` - Add movie to watchlist
+- `GET /api/v1/watchlist` - Get user's watchlist (filter by favorites)
+- `GET /api/v1/watchlist/:id` - Get watchlist item by ID
+- `PATCH /api/v1/watchlist/:id/favorite` - Toggle favorite status
+- `PATCH /api/v1/watchlist/:id` - Update watchlist item
 - `DELETE /api/v1/watchlist/:id` - Remove from watchlist
-- `PATCH /api/v1/watchlist/:id/favorite` - Toggle favorite
-- `GET /api/v1/watchlist/favorites` - Get favorites only
 
 ### Genres
-- `GET /api/v1/genres` - List all genres
-- `POST /api/v1/genres/sync` - Sync from TMDB (admin)
+- `GET /api/v1/genres` - List all genres (cached)
+- `GET /api/v1/genres/:id` - Get genre by ID
 
 ### Auth
-- `POST /api/v1/auth/register` - Register user
-- `POST /api/v1/auth/login` - Login
-- `GET /api/v1/auth/profile` - Get profile
-- `PUT /api/v1/auth/profile` - Update profile
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - Login and get JWT token
 
 ### Health
-- `GET /health` - Health check endpoint
+- `GET /api/v1/health` - Application health check
+- `GET /api/v1/health/database` - Database connectivity check
+- `GET /api/v1/health/redis` - Redis connectivity check
 
 ## Security
 
@@ -438,9 +887,10 @@ db.movies.aggregate([
 3. Store sync metadata in synclogs collection
 
 ### Scheduled Sync (Cron Job)
-- **Daily sync** (2 AM): Update existing movies
-- **Weekly genre sync**: Check for new genres
-- Incremental updates based on last sync timestamp
+- **Daily genre sync** (1 AM UTC): Update genres from TMDB
+- **Daily movie sync** (2 AM UTC): Sync 50 pages of popular movies (configurable via TMDB_SYNC_PAGES)
+- Incremental updates with upsert operations
+- Batch processing with rate limiting
 
 ### Sync Process
 1. Check last sync log
