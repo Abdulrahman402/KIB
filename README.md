@@ -26,6 +26,61 @@
 
 TMDB Movie API - A comprehensive RESTful API for movie database management with ratings and watchlist functionality. Built with NestJS and powered by The Movie Database (TMDB) API.
 
+## Technology Stack
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        BACKEND FRAMEWORK                             │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐   │
+│  │  NestJS    │  │ TypeScript │  │  Node.js   │  │  Express   │   │
+│  │  v10.x     │  │   v5.x     │  │   v20.x    │  │   HTTP     │   │
+│  └────────────┘  └────────────┘  └────────────┘  └────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                      DATABASE & CACHING                              │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐                    │
+│  │  MongoDB   │  │  Mongoose  │  │   Redis    │                    │
+│  │   v7.0     │  │  ODM v8.x  │  │   v7.x     │                    │
+│  │  (Primary) │  │            │  │  (Cache)   │                    │
+│  └────────────┘  └────────────┘  └────────────┘                    │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                    AUTHENTICATION & SECURITY                         │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐   │
+│  │ Passport.js│  │    JWT     │  │   bcrypt   │  │  Throttler │   │
+│  │  Strategy  │  │  Tokens    │  │  Hashing   │  │ Rate Limit │   │
+│  └────────────┘  └────────────┘  └────────────┘  └────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                    EXTERNAL INTEGRATIONS                             │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐                    │
+│  │  TMDB API  │  │   Axios    │  │  @nestjs/  │                    │
+│  │  (Source)  │  │   HTTP     │  │  schedule  │                    │
+│  │            │  │  Client    │  │  (Cron)    │                    │
+│  └────────────┘  └────────────┘  └────────────┘                    │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                    DOCUMENTATION & TESTING                           │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐   │
+│  │  Swagger   │  │    Jest    │  │ Supertest  │  │ class-     │   │
+│  │  OpenAPI   │  │   Unit     │  │    E2E     │  │ validator  │   │
+│  └────────────┘  └────────────┘  └────────────┘  └────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                    DEPLOYMENT & DEVOPS                               │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐                    │
+│  │   Docker   │  │  docker-   │  │  Multi-    │                    │
+│  │ Container  │  │  compose   │  │  stage     │                    │
+│  │            │  │            │  │  Build     │                    │
+│  └────────────┘  └────────────┘  └────────────┘                    │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
 ## Features
 
 - 🎬 **Movie Management** - Browse, search, and filter movies from TMDB
@@ -53,30 +108,32 @@ $ npm install
 
 ### Environment Configuration
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory (see `.env.example` for reference):
 
-```env
-# App Configuration
-NODE_ENV=development
-PORT=8080
-API_PREFIX=api/v1
 
-# Database
-MONGODB_URI=mongodb://localhost:27017/tmdb-movie-api
+## Docker Deployment (Recommended)
 
-# JWT
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=7d
+The easiest way to run the application is using Docker Compose:
 
-# TMDB API
-TMDB_API_KEY=your-tmdb-api-key
-TMDB_BASE_URL=https://api.themoviedb.org/3
+```bash
+# Start all services (MongoDB, Redis, Application)
+$ docker-compose up
 
-# CORS
-CORS_ORIGIN=http://localhost:3000
+# Start in detached mode
+$ docker-compose up -d
+
+# Stop all services
+$ docker-compose down
+
+# View logs
+$ docker-compose logs -f app
 ```
 
-## Compile and run the project
+Once running, the application will be available at:
+- **API Base URL**: `http://localhost:8080/api/v1`
+- **Swagger Documentation**: `http://localhost:8080/api/docs`
+
+## Local Development
 
 ```bash
 # development
@@ -89,9 +146,9 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-Once running, the application will be available at:
-- **API Base URL**: `http://localhost:8080/api/v1`
-- **Swagger Documentation**: `http://localhost:8080/api/docs`
+**Prerequisites for local development:**
+- MongoDB running on `mongodb://localhost:27017`
+- Redis running on `localhost:6379`
 
 ## API Documentation
 
@@ -104,6 +161,51 @@ Here you can:
 - Test API calls directly from the browser
 - View request/response schemas
 - Authenticate with JWT tokens
+
+### API Endpoints Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    API BASE: /api/v1                                 │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  🔓 PUBLIC ENDPOINTS (No Authentication Required)                   │
+│  ├── POST   /auth/register      Create new user account             │
+│  └── POST   /auth/login         Get JWT access token                │
+│                                                                      │
+│  🔒 PROTECTED ENDPOINTS (JWT Token Required)                        │
+│                                                                      │
+│  🎬 MOVIES                                                           │
+│  ├── GET    /movies             List all movies (pagination)        │
+│  ├── GET    /movies/search      Search movies by title              │
+│  ├── GET    /movies/:id         Get movie by ID                     │
+│  └── [Filters: ?genre=Action&year=2024&minRating=7]                │
+│                                                                      │
+│  🎭 GENRES                                                           │
+│  ├── GET    /genres             List all genres (cached)            │
+│  └── GET    /genres/:id         Get genre details                   │
+│                                                                      │
+│  ⭐ RATINGS                                                          │
+│  ├── POST   /ratings            Rate a movie (1-10 scale)           │
+│  ├── GET    /ratings            Get user's ratings                  │
+│  ├── GET    /ratings/:id        Get rating details                  │
+│  ├── PATCH  /ratings/:id        Update a rating                     │
+│  └── DELETE /ratings/:id        Delete a rating                     │
+│                                                                      │
+│  📋 WATCHLIST                                                        │
+│  ├── POST   /watchlist          Add movie to watchlist              │
+│  ├── GET    /watchlist          Get user's watchlist                │
+│  ├── GET    /watchlist/:id      Get watchlist item                  │
+│  ├── PATCH  /watchlist/:id      Update favorite status              │
+│  └── DELETE /watchlist/:id      Remove from watchlist               │
+│                                                                      │
+│  💚 HEALTH CHECK                                                     │
+│  └── GET    /health             Check API & DB status               │
+│                                                                      │
+│  📚 DOCUMENTATION                                                    │
+│  └── GET    /api/docs           Swagger UI (this page)              │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ### Authentication Flow
 
@@ -128,11 +230,12 @@ Here you can:
 
 4. Click "Authorize" in Swagger UI and enter: `Bearer <your-token>`
 
-### Key Endpoints
+### Example API Calls
 
 **Movies**
 - `GET /api/v1/movies` - List movies (with filters)
 - `GET /api/v1/movies/search?query=inception` - Search movies
+- `GET /api/v1/movies?genre=Action&year=2024&minRating=7` - Filtered list
 - `GET /api/v1/movies/:id` - Get movie details
 
 **Ratings**
@@ -171,24 +274,35 @@ $ npm run test:cov
 
 ## Technology Stack
 
-- **Framework**: NestJS
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT (JSON Web Tokens)
+- **Framework**: NestJS 10.x
+- **Runtime**: Node.js 20.x
+- **Language**: TypeScript 5.x
+- **Database**: MongoDB 7.0 with Mongoose ODM
+- **Cache**: Redis 7.x with cache-manager-redis-yet
+- **Authentication**: JWT (Passport.js + @nestjs/jwt)
 - **Validation**: class-validator & class-transformer
-- **API Documentation**: Swagger/OpenAPI
-- **Testing**: Jest
+- **API Documentation**: Swagger/OpenAPI (@nestjs/swagger)
+- **Testing**: Jest with Supertest
+- **HTTP Client**: Axios (@nestjs/axios)
+- **Task Scheduling**: @nestjs/schedule (cron jobs)
+- **Rate Limiting**: @nestjs/throttler
 - **External API**: TMDB (The Movie Database)
-- **Task Scheduling**: @nestjs/schedule (for data sync)
+- **Containerization**: Docker & Docker Compose
 
 ## Architecture Highlights
 
-- **Modular Design** - Separated modules for auth, movies, ratings, watchlist, genres
-- **Repository Pattern** - Clean data access layer
-- **DTOs** - Request/response validation and transformation
-- **Guards** - JWT authentication guards
-- **Interceptors** - Logging and response transformation
-- **Exception Filters** - Centralized error handling
-- **Automated Sync** - Cron jobs for TMDB data synchronization
+- **Modular Design** - Separated modules: auth, movies, ratings, watchlist, genres, tmdb, health
+- **Repository Pattern** - Clean data access layer for all entities
+- **DTOs** - Comprehensive request/response validation and transformation
+- **JWT Guards** - Secure authentication with Passport.js JWT strategy
+- **Custom Guards** - Throttler guard for rate limiting (100 requests/minute)
+- **Interceptors** - Logging, response transformation, and caching
+- **Exception Filters** - Global filters for HTTP, MongoDB, and all exceptions
+- **Automated Sync** - Cron jobs for daily TMDB data synchronization (1 AM for genres, 2 AM for movies)
+- **Redis Caching** - Global cache module with strategic TTLs
+- **Health Checks** - Comprehensive health endpoints for monitoring
+- **Swagger Documentation** - Interactive API documentation with JWT authentication
+- **Docker Support** - Multi-stage Dockerfile with docker-compose for full stack
 
 ## Deployment
 
